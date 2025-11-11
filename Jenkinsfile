@@ -12,8 +12,8 @@ pipeline {
   }
 
   options {
-    timestamps()
-    ansiColor('xterm')
+    // timestamps() and ansiColor() require extra plugins (Timestamper, AnsiColor).
+    // Removing them for compatibility with minimal Jenkins installations.
     buildDiscarder(logRotator(numToKeepStr: '20'))
     skipDefaultCheckout(true)
   }
