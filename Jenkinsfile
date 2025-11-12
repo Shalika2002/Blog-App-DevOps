@@ -33,16 +33,19 @@ pipeline {
     stage('Compute image tag') {
       steps {
         script {
-          // Prefer Jenkins-provided GIT_COMMIT if available
-          def tag = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : null
-          if (!tag) {
-            if (isUnix()) {
-              tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD || echo ""').trim()
-            } else {
-              tag = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
-            }
+          // Prefer Jenkins-provided GIT_COMMIT; fall back to git; last resort build number
+          def candidates = []
+          if (env.GIT_COMMIT) { candidates << env.GIT_COMMIT.take(7) }
+          def out = ''
+          if (isUnix()) {
+            out = sh(returnStdout: true, script: 'git rev-parse --short HEAD || true').trim()
+          } else {
+            out = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
           }
-          env.IMAGE_TAG = (tag && tag.toLowerCase() != 'null') ? tag : 'latest'
+          if (out) { candidates << out }
+          def fallback = "build-${env.BUILD_NUMBER ?: '0'}"
+          def picked = candidates.find { it && it.trim() && it.toLowerCase() != 'null' } ?: fallback
+          env.IMAGE_TAG = picked
           echo "Using image tag: ${env.IMAGE_TAG} (GIT_COMMIT=${env.GIT_COMMIT ?: 'n/a'})"
         }
       }
