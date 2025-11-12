@@ -26,7 +26,26 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        script {
+          // Harden git fetch against flaky networks and reduce payload size
+          if (isUnix()) {
+            sh 'git config --global http.version HTTP/1.1 || true'
+            sh 'git config --global core.compression 0 || true'
+          } else {
+            bat 'git config --global http.version HTTP/1.1'
+          }
+          retry(3) {
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: '*/main']],
+              userRemoteConfigs: [[url: 'https://github.com/Shalika2002/Blog-App-DevOps.git']],
+              extensions: [
+                [$class: 'CloneOption', shallow: true, depth: 10, noTags: false, reference: '', timeout: 20],
+                [$class: 'CleanCheckout']
+              ]
+            ])
+          }
+        }
       }
     }
 
