@@ -106,15 +106,18 @@ pipeline {
 
     stage('Docker Login & Push') {
       when {
-        expression { return params.DOCKERHUB_CREDENTIALS_ID?.trim() }
+        allOf {
+          expression { return params.DOCKERHUB_CREDENTIALS_ID?.trim() }
+          branch 'main'
+        }
       }
       steps {
         withCredentials([usernamePassword(credentialsId: params.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           script {
             if (isUnix()) {
+              // Avoid Groovy interpolation with secrets
+              sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
               sh """
-                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-
                 docker push ${params.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG}
                 docker push ${params.DOCKERHUB_USER}/blog-frontend:latest
 
@@ -130,6 +133,41 @@ pipeline {
                 docker push ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}
                 docker push ${params.DOCKERHUB_USER}/blog-backend:latest
               """
+            }
+          }
+        }
+      }
+    }
+
+    stage('Smoke Test - Backend') {
+      steps {
+        script {
+          if (isUnix()) {
+            sh """
+              set -e
+              docker network create snaplink-ci || true
+              docker rm -f ci_mongo ci_backend || true
+              docker run -d --name ci_mongo --network snaplink-ci mongo:6
+              # give mongo a moment
+              sleep 5
+              docker run -d --name ci_backend --network snaplink-ci -p 3000:3000 ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}
+              # wait for backend up to 60s
+              for i in $(seq 1 30); do
+                if curl -fsS http://localhost:3000/posts >/dev/null 2>&1; then echo "backend ok"; ok=1; break; fi;
+                sleep 2;
+              done
+              test "$ok" = "1"
+            """
+          } else {
+            echo 'Smoke test skipped on Windows agent.'
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            if (isUnix()) {
+              sh 'docker rm -f ci_backend ci_mongo || true && docker network rm snaplink-ci || true'
             }
           }
         }
