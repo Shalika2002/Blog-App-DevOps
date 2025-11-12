@@ -35,12 +35,11 @@ pipeline {
         script {
           // Use short commit SHA for immutable tag
           if (isUnix()) {
-            env.IMAGE_TAG = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+            def output = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+            env.IMAGE_TAG = output ?: 'latest'
           } else {
-            env.IMAGE_TAG = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
-          }
-          if (!env.IMAGE_TAG || env.IMAGE_TAG == 'null') {
-            env.IMAGE_TAG = 'latest'
+            def output = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
+            env.IMAGE_TAG = output ?: 'latest'
           }
           echo "Using image tag: ${env.IMAGE_TAG}"
         }
@@ -51,14 +50,14 @@ pipeline {
       steps {
         script {
           if (isUnix()) {
-            sh '''
+            sh """
               docker build \
-                -t ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG} \
-                -t ${DOCKERHUB_USER}/blog-frontend:latest \
+                -t ${params.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG} \
+                -t ${params.DOCKERHUB_USER}/blog-frontend:latest \
                 ./frontend
-            '''
+            """
           } else {
-            bat 'docker build -t %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-frontend:latest ./frontend'
+            bat "docker build -t %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-frontend:latest ./frontend"
           }
         }
       }
@@ -68,14 +67,14 @@ pipeline {
       steps {
         script {
           if (isUnix()) {
-            sh '''
+            sh """
               docker build \
-                -t ${DOCKERHUB_USER}/blog-backend:${IMAGE_TAG} \
-                -t ${DOCKERHUB_USER}/blog-backend:latest \
+                -t ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG} \
+                -t ${params.DOCKERHUB_USER}/blog-backend:latest \
                 ./backend
-            '''
+            """
           } else {
-            bat 'docker build -t %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-backend:latest ./backend'
+            bat "docker build -t %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-backend:latest ./backend"
           }
         }
       }
@@ -86,24 +85,24 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: params.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           script {
             if (isUnix()) {
-              sh '''
+              sh """
                 echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
-                docker push ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG}
-                docker push ${DOCKERHUB_USER}/blog-frontend:latest
+                docker push ${params.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG}
+                docker push ${params.DOCKERHUB_USER}/blog-frontend:latest
 
-                docker push ${DOCKERHUB_USER}/blog-backend:${IMAGE_TAG}
-                docker push ${DOCKERHUB_USER}/blog-backend:latest
-              '''
+                docker push ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}
+                docker push ${params.DOCKERHUB_USER}/blog-backend:latest
+              """
             } else {
-              bat '''
+              bat """
                 @echo off
                 echo %DOCKER_PASS% | docker login -u "%DOCKER_USER%" --password-stdin
                 docker push %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG%
                 docker push %DOCKERHUB_USER%/blog-frontend:latest
                 docker push %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG%
                 docker push %DOCKERHUB_USER%/blog-backend:latest
-              '''
+              """
             }
           }
         }
