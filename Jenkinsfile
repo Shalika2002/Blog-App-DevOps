@@ -143,21 +143,19 @@ pipeline {
       steps {
         script {
           if (isUnix()) {
-            sh """
-              set -e
-              docker network create snaplink-ci || true
-              docker rm -f ci_mongo ci_backend || true
-              docker run -d --name ci_mongo --network snaplink-ci mongo:6
-              # give mongo a moment
-              sleep 5
-              docker run -d --name ci_backend --network snaplink-ci -p 3000:3000 ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}
-              # wait for backend up to 60s
+            sh 'set -e; docker network create snaplink-ci || true'
+            sh 'docker rm -f ci_mongo ci_backend || true'
+            sh 'docker run -d --name ci_mongo --network snaplink-ci mongo:6'
+            sh 'sleep 5'
+            sh "docker run -d --name ci_backend --network snaplink-ci -p 3000:3000 ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}"
+            sh '''
+              ok=""
               for i in $(seq 1 30); do
-                if curl -fsS http://localhost:3000/posts >/dev/null 2>&1; then echo "backend ok"; ok=1; break; fi;
-                sleep 2;
+                if curl -fsS http://localhost:3000/posts >/dev/null 2>&1; then echo backend ok; ok=1; break; fi
+                sleep 2
               done
-              test "$ok" = "1"
-            """
+              [ "$ok" = "1" ]
+            '''
           } else {
             echo 'Smoke test skipped on Windows agent.'
           }
