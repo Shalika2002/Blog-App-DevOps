@@ -52,32 +52,30 @@ pipeline {
         script {
           if (isUnix()) {
             sh '''
-              set -euxo pipefail
               docker build \
                 -t ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG} \
                 -t ${DOCKERHUB_USER}/blog-frontend:latest \
                 ./frontend
             '''
           } else {
-            // Windows agent (cmd)
             bat 'docker build -t %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-frontend:latest ./frontend'
           }
         }
       }
     }
 
-    stage('Docker Build - Frontend') {
+    stage('Docker Build - Backend') {
       steps {
         script {
           if (isUnix()) {
             sh '''
               docker build \
-                -t ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG} \
-                -t ${DOCKERHUB_USER}/blog-frontend:latest \
-                ./frontend
+                -t ${DOCKERHUB_USER}/blog-backend:${IMAGE_TAG} \
+                -t ${DOCKERHUB_USER}/blog-backend:latest \
+                ./backend
             '''
           } else {
-            bat 'docker build -t %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-frontend:latest ./frontend'
+            bat 'docker build -t %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-backend:latest ./backend'
           }
         }
       }
