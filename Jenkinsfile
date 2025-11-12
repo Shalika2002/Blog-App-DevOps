@@ -59,7 +59,7 @@ pipeline {
                 ./frontend
             """
           } else {
-            bat "docker build -t %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-frontend:latest ./frontend"
+            bat "docker build -t ${params.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG} -t ${params.DOCKERHUB_USER}/blog-frontend:latest ./frontend"
           }
         }
       }
@@ -76,13 +76,16 @@ pipeline {
                 ./backend
             """
           } else {
-            bat "docker build -t %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-backend:latest ./backend"
+            bat "docker build -t ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG} -t ${params.DOCKERHUB_USER}/blog-backend:latest ./backend"
           }
         }
       }
     }
 
     stage('Docker Login & Push') {
+      when {
+        expression { return params.DOCKERHUB_CREDENTIALS_ID?.trim() }
+      }
       steps {
         withCredentials([usernamePassword(credentialsId: params.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           script {
@@ -100,10 +103,10 @@ pipeline {
               bat """
                 @echo off
                 echo %DOCKER_PASS% | docker login -u "%DOCKER_USER%" --password-stdin
-                docker push %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG%
-                docker push %DOCKERHUB_USER%/blog-frontend:latest
-                docker push %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG%
-                docker push %DOCKERHUB_USER%/blog-backend:latest
+                docker push ${params.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG}
+                docker push ${params.DOCKERHUB_USER}/blog-frontend:latest
+                docker push ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}
+                docker push ${params.DOCKERHUB_USER}/blog-backend:latest
               """
             }
           }
@@ -122,10 +125,10 @@ pipeline {
         }
       }
       echo "Build finished. Images:"
-      echo "- ${env.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG}"
-      echo "- ${env.DOCKERHUB_USER}/blog-frontend:latest"
-      echo "- ${env.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}"
-      echo "- ${env.DOCKERHUB_USER}/blog-backend:latest"
+      echo "- ${params.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG}"
+      echo "- ${params.DOCKERHUB_USER}/blog-frontend:latest"
+      echo "- ${params.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}"
+      echo "- ${params.DOCKERHUB_USER}/blog-backend:latest"
     }
   }
 }
