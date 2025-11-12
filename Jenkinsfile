@@ -37,7 +37,10 @@ pipeline {
           if (isUnix()) {
             env.IMAGE_TAG = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
           } else {
-            env.IMAGE_TAG = bat(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+            env.IMAGE_TAG = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
+          }
+          if (!env.IMAGE_TAG || env.IMAGE_TAG == 'null') {
+            env.IMAGE_TAG = 'latest'
           }
           echo "Using image tag: ${env.IMAGE_TAG}"
         }
@@ -63,19 +66,18 @@ pipeline {
       }
     }
 
-    stage('Docker Build - Backend') {
+    stage('Docker Build - Frontend') {
       steps {
         script {
           if (isUnix()) {
             sh '''
-              set -euxo pipefail
               docker build \
-                -t ${DOCKERHUB_USER}/blog-backend:${IMAGE_TAG} \
-                -t ${DOCKERHUB_USER}/blog-backend:latest \
-                ./backend
+                -t ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG} \
+                -t ${DOCKERHUB_USER}/blog-frontend:latest \
+                ./frontend
             '''
           } else {
-            bat 'docker build -t %DOCKERHUB_USER%/blog-backend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-backend:latest ./backend'
+            bat 'docker build -t %DOCKERHUB_USER%/blog-frontend:%IMAGE_TAG% -t %DOCKERHUB_USER%/blog-frontend:latest ./frontend'
           }
         }
       }
@@ -87,7 +89,6 @@ pipeline {
           script {
             if (isUnix()) {
               sh '''
-                set -euxo pipefail
                 echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
 
                 docker push ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG}
@@ -118,14 +119,14 @@ pipeline {
         if (isUnix()) {
           sh 'docker logout || true'
         } else {
-          bat 'docker logout'
+          bat 'docker logout || exit /b 0'
         }
       }
       echo "Build finished. Images:"
-      echo "- ${DOCKERHUB_USER}/blog-frontend:${IMAGE_TAG}"
-      echo "- ${DOCKERHUB_USER}/blog-frontend:latest"
-      echo "- ${DOCKERHUB_USER}/blog-backend:${IMAGE_TAG}"
-      echo "- ${DOCKERHUB_USER}/blog-backend:latest"
+      echo "- ${env.DOCKERHUB_USER}/blog-frontend:${env.IMAGE_TAG}"
+      echo "- ${env.DOCKERHUB_USER}/blog-frontend:latest"
+      echo "- ${env.DOCKERHUB_USER}/blog-backend:${env.IMAGE_TAG}"
+      echo "- ${env.DOCKERHUB_USER}/blog-backend:latest"
     }
   }
 }
