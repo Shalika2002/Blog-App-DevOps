@@ -33,15 +33,17 @@ pipeline {
     stage('Compute image tag') {
       steps {
         script {
-          // Use short commit SHA for immutable tag
-          if (isUnix()) {
-            def output = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-            env.IMAGE_TAG = output ?: 'latest'
-          } else {
-            def output = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
-            env.IMAGE_TAG = output ?: 'latest'
+          // Prefer Jenkins-provided GIT_COMMIT if available
+          def tag = env.GIT_COMMIT ? env.GIT_COMMIT.take(7) : null
+          if (!tag) {
+            if (isUnix()) {
+              tag = sh(returnStdout: true, script: 'git rev-parse --short HEAD || echo ""').trim()
+            } else {
+              tag = bat(returnStdout: true, script: '@git rev-parse --short HEAD').trim()
+            }
           }
-          echo "Using image tag: ${env.IMAGE_TAG}"
+          env.IMAGE_TAG = (tag && tag.toLowerCase() != 'null') ? tag : 'latest'
+          echo "Using image tag: ${env.IMAGE_TAG} (GIT_COMMIT=${env.GIT_COMMIT ?: 'n/a'})"
         }
       }
     }
