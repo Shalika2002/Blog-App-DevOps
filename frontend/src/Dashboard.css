@@ -1,147 +1,194 @@
 .dashboard-bg {
-  min-height: 100vh;
-  background: linear-gradient(120deg, #e0e7ff 0%, #f8fafc 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 1rem;
+  min-height: 100vh;
 }
 
 .dashboard-container {
-  max-width: 600px;
-  margin: 60px auto;
-  padding: 2.5rem 2rem 2rem 2rem;
-  background: rgba(255,255,255,0.98);
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.13), 0 1.5px 8px rgba(13, 71, 161, 0.08);
-  text-align: center;
-  position: relative;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  padding: 2.8rem 3rem 3.5rem;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 2.2rem;
 }
 
 .dashboard-title {
-  font-size: 2.3rem;
-  font-weight: 900;
-  color: #0d47a1;
-  margin-bottom: 0.7rem;
-  letter-spacing: 1.2px;
-  text-shadow: 0 4px 16px rgba(25, 118, 210, 0.10);
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-weight: 800;
+  margin: 0;
+  color: var(--color-text);
 }
 
 .dashboard-welcome {
-  font-size: 1.15rem;
-  color: #1976d2;
-  margin-bottom: 2.2rem;
-  font-style: italic;
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 1.1rem;
+  line-height: 1.7;
 }
 
-.dashboard-cards {
+.dashboard-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-step {
+  border-radius: var(--radius-md);
+  padding: 1rem 1.3rem;
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.1);
   display: flex;
-  gap: 1.2rem;
-  justify-content: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
-.dashboard-card {
-  background: #e3edfa;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
-  padding: 1.2rem 1.1rem;
-  min-width: 150px;
-  flex: 1 1 150px;
-  max-width: 180px;
-  transition: transform 0.18s, box-shadow 0.18s;
+.dashboard-step span {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 0.95rem;
 }
 
-.dashboard-card:hover {
-  transform: translateY(-4px) scale(1.04);
-  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.13);
-  background: #f5f8ff;
+.dashboard-step p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.95rem;
 }
 
-.dashboard-card h3 {
-  color: #1565c0;
-  margin-bottom: 0.5rem;
-  font-size: 1.15rem;
-}
-
-.dashboard-card p {
-  color: #333;
-  font-size: 0.98rem;
-}
-
-/* Post creator */
 .post-form {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  margin-top: 0.6rem;
+  gap: 1.2rem;
+}
+
+.post-label {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 0.98rem;
 }
 
 .post-input {
-  width: 100%;
   resize: vertical;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  border: 1px solid #cfd8dc;
-  background: #fafbff;
-  outline: none;
-  font-size: 1rem;
+  min-height: 140px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  padding: 1.1rem 1.2rem;
+  background: rgba(248, 250, 252, 0.88);
+  font-size: 1.05rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
 }
+
 .post-input:focus {
-  border-color: #90caf9;
-  box-shadow: 0 0 0 3px rgba(144,202,249,0.3);
+  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  outline: none;
 }
 
 .post-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   justify-content: space-between;
   align-items: center;
 }
 
 .upload-btn {
-  display: inline-block;
-  padding: 0.55rem 1rem;
-  border-radius: 999px;
-  background: #e3f2fd;
-  color: #1565c0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  background: rgba(219, 234, 254, 0.65);
+  color: var(--color-primary);
   cursor: pointer;
-  border: 1px solid #90caf9;
   font-weight: 600;
+  transition: transform 0.2s ease, border 0.2s ease;
+}
+
+.upload-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(37, 99, 235, 0.4);
 }
 
 .submit-post {
-  padding: 0.6rem 1.4rem;
-  border-radius: 999px;
   border: none;
-  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
-  color: white;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  color: #f8fafc;
   font-weight: 700;
+  padding: 0.85rem 2.2rem;
   cursor: pointer;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submit-post:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+}
+
+.submit-post:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .post-image-preview {
   position: relative;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   overflow: hidden;
-}
-.post-image-preview img {
-  width: 100%;
-  display: block;
-  max-height: 320px;
-  object-fit: contain;
-  background: #f3f6fb;
-}
-.remove-img {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.55);
-  color: #fff;
-  border: none;
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  cursor: pointer;
+  background: rgba(15, 23, 42, 0.06);
 }
 
-.post-message { color: #1565c0; margin-top: 0.8rem; font-weight: 600; }
+.post-image-preview img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.remove-img {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(15, 23, 42, 0.7);
+  color: #f8fafc;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.post-message {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 640px) {
+  .dashboard-container {
+    padding: 2.2rem 1.6rem 2.8rem;
+  }
+
+  .post-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .upload-btn,
+  .submit-post {
+    width: 100%;
+    justify-content: center;
+  }
+}

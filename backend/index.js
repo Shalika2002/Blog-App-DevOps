@@ -19,13 +19,14 @@ mongoose.connect('mongodb://mongo:27017/database').then(() => {
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Ensure uploads directory exists
-const uploadDir = path.join(process.cwd(), 'uploads');
+const uploadDir = path.join('/app', 'uploads');
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 // Multer storage config
@@ -84,17 +85,39 @@ app.post('/signin', async (req, res) => {
 // Create a post (text + optional image)
 app.post('/posts', upload.single('image'), async (req, res) => {
     try {
+        console.log('POST /posts received');
+        console.log('Body:', req.body);
+        console.log('File:', req.file);
+        
         const { text, username } = req.body;
-        if (!text) {
-            return res.status(400).json({ message: 'Text is required' });
+        
+        // Allow posts with either text or image
+        if (!text?.trim() && !req.file) {
+            return res.status(400).json({ message: 'Text or image is required' });
         }
-        const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
-        const post = new Post({ text, imageUrl, username: username || 'Anonymous' });
+        
+        let imageUrl = null;
+        if (req.file) {
+            imageUrl = `/uploads/${req.file.filename}`;
+            console.log('Image uploaded, URL:', imageUrl);
+        }
+        
+        const postData = {
+            text: text?.trim() || '',
+            imageUrl: imageUrl,
+            username: username || 'Anonymous'
+        };
+        
+        console.log('Creating post with data:', postData);
+        
+        const post = new Post(postData);
         await post.save();
+        
+        console.log('Post saved successfully:', post);
         res.status(201).json({ message: 'Post created', post });
     } catch (e) {
-        console.error(e);
-        res.status(500).json({ message: 'Error creating post' });
+        console.error('Error creating post:', e);
+        res.status(500).json({ message: 'Error creating post', error: e.message });
     }
 });
 
